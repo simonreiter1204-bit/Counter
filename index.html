@@ -25,6 +25,20 @@ button:active{transform:scale(.96)} .counter-buttons button{flex:1;font-size:30p
 .history{width:100%;border-collapse:collapse}
 .history th,.history td{padding:10px 5px;text-align:left;border-bottom:1px solid #ddd}
 .history th:last-child,.history td:last-child{text-align:right}
+.function-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.function-result span {
+    font-size: 17px;
+}
+
+.function-result strong {
+    font-size: 28px;
+}
 #clock{text-align:center;font-size:42px;font-weight:bold}
 #date{text-align:center;margin-top:5px;color:#666;font-size:17px}
 @media(prefers-color-scheme:dark){
@@ -32,6 +46,7 @@ body{background:#000;color:white}.card{background:#1c1c1e;box-shadow:none}
 button{background:#2c2c2e;color:white}.input-box{background:#2c2c2e}
 .integer-input{background:#2c2c2e;color:white;border-color:#444}
 .history th,.history td{border-color:#444}#date{color:#aaa}
+
 }
 </style>
 </head>
@@ -48,15 +63,24 @@ button{background:#2c2c2e;color:white}.input-box{background:#2c2c2e}
 <button class="reset" onclick="resetCounter()">Counter zurücksetzen</button>
 </div>
 
+ <div class="card">
+ <h2>Heute ausgegeben:<h2>
+    <div class="function-result">
+        <span>Ergebnis</span>
+        <strong id="calculationResult">0</strong>
+    </div>
+</div>
+  
+
 <div class="card">
-<h2>Werte</h2>
+<h2>Aktuelle Datensatzwerte</h2>
 <div class="input-boxes">
 <div class="input-box">
-<label for="value1">Wert 1</label>
+<label for="value1">Schachtelpreis</label>
 <input class="integer-input" id="value1" type="number" step="1" inputmode="numeric">
 </div>
 <div class="input-box">
-<label for="value2">Wert 2</label>
+<label for="value2">Inhalt in Stück</label>
 <input class="integer-input" id="value2" type="number" step="1" inputmode="numeric">
 </div>
 </div>
@@ -85,10 +109,25 @@ function updateCounter(){
  localStorage.setItem("counter",counter);
  saveToday();
  showHistory();
+ calculateValues();
 }
 function changeCounter(value){counter+=value;updateCounter()}
 function resetCounter(){counter=0;updateCounter()}
 
+function calculateValues() {
+    const value1 = Number(document.getElementById("value1").value);
+    const value2 = Number(document.getElementById("value2").value);
+
+    if (value2 === 0) {
+        document.getElementById("calculationResult").textContent = "—";
+        return;
+    }
+
+    const result = (value1 / value2) * counter;
+
+    document.getElementById("calculationResult").textContent = result;
+}
+ 
 function loadValues(){
  document.getElementById("value1").value=localStorage.getItem("value1")??"";
  document.getElementById("value2").value=localStorage.getItem("value2")??"";
@@ -100,6 +139,7 @@ function saveValues(){
  else localStorage.removeItem("value1");
  if(value2!=="") localStorage.setItem("value2",String(Math.trunc(Number(value2))));
  else localStorage.removeItem("value2");
+ calculateValues();
 }
 
 function getToday(){
