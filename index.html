@@ -39,6 +39,12 @@ button:active{transform:scale(.96)} .counter-buttons button{flex:1;font-size:30p
 .function-result strong {
     font-size: 28px;
 }
+.time-result {
+    text-align: center;
+    font-size: 42px;
+    font-weight: bold;
+    padding: 10px 0;
+}
 #clock{text-align:center;font-size:42px;font-weight:bold}
 #date{text-align:center;margin-top:5px;color:#666;font-size:17px}
 @media(prefers-color-scheme:dark){
@@ -68,6 +74,14 @@ button{background:#2c2c2e;color:white}.input-box{background:#2c2c2e}
     <div class="function-result">
         <span>Ergebnis</span>
         <strong id="calculationResult">0</strong>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Zeit seit letzter Fluppe</h2>
+
+    <div id="timeSinceChange" class="time-result">
+        00:00:00
     </div>
 </div>
   
@@ -125,7 +139,31 @@ function calculateValues() {
 
     const result = (value1 / value2) * counter;
 
+document.getElementById("calculationResult").textContent =
+    result.toFixed(2);
+
     document.getElementById("calculationResult").textContent = result;
+}
+
+let lastCounterChange = Number(
+    localStorage.getItem("lastCounterChange") || Date.now()
+);
+
+function updateTimeSinceChange() {
+    const elapsed = Date.now() - lastCounterChange;
+
+    const totalSeconds = Math.floor(elapsed / 1000);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const timeString =
+        String(hours).padStart(2, "0") + ":" +
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+
+    document.getElementById("timeSinceChange").textContent = timeString;
 }
  
 function loadValues(){
