@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mein Counter">
+<title>Mein Counter</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f2f2f7;color:#111;max-width:600px;margin-left:auto;margin-right:auto}
+h1{text-align:center;margin:10px 0 25px}
+h2{margin-top:0;font-size:20px}
+.card{background:white;border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+#counter{text-align:center;font-size:64px;font-weight:bold;margin:15px 0 25px}
+.counter-buttons{display:flex;gap:12px}
+button{border:none;border-radius:14px;padding:14px;font-size:20px;font-weight:600;background:#e5e5ea;color:#111;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(.96)}
+.counter-buttons button{flex:1;font-size:30px}
+.reset,.clear-history{width:100%;margin-top:12px;font-size:16px}
+.input-row{display:flex;gap:10px}
+input,select{width:100%;padding:14px;font-size:18px;border:1px solid #ccc;border-radius:12px;background:white;color:#111}
+select{flex:1}.number-input{flex:1}
+#calculation{text-align:center;font-size:26px;font-weight:bold;margin-top:20px}
+.history{width:100%;border-collapse:collapse}
+.history th,.history td{padding:10px 5px;text-align:left;border-bottom:1px solid #ddd}
+.history th:last-child,.history td:last-child{text-align:right}
+#clock{text-align:center;font-size:42px;font-weight:bold}
+#date{text-align:center;margin-top:5px;color:#666;font-size:17px}
+@media(prefers-color-scheme:dark){
+body{background:#000;color:white}.card{background:#1c1c1e;box-shadow:none}
+button{background:#2c2c2e;color:white}
+input,select{background:#2c2c2e;color:white;border-color:#444}
+.history th,.history td{border-color:#444}#date{color:#aaa}
+}
+</style>
+</head>
+<body>
+<h1>Mein Counter</h1>
+
+<div class="card">
+<h2>Counter</h2>
+<div id="counter">0</div>
+<div class="counter-buttons">
+<button onclick="changeCounter(-1)">−1</button>
+<button onclick="changeCounter(1)">+1</button>
+</div>
+<button class="reset" onclick="resetCounter()">Counter zurücksetzen</button>
+</div>
+
+<div class="card">
+<h2>Berechnung</h2>
+<div class="input-row">
+<select id="operation" onchange="calculate()">
+<option value="multiply">×</option>
+<option value="divide">÷</option>
+<option value="add">+</option>
+<option value="subtract">−</option>
+</select>
+<input class="number-input" id="calculationValue" type="number" value="1" step="any" oninput="calculate()">
+</div>
+<div id="calculation">0</div>
+</div>
+
+<div class="card">
+<h2>Tageshistorie</h2>
+<table class="history">
+<thead><tr><th>Datum</th><th>Wert</th></tr></thead>
+<tbody id="history"></tbody>
+</table>
+<button class="clear-history" onclick="clearHistory()">Historie löschen</button>
+</div>
+
+<div class="card">
+<h2>Uhr</h2>
+<div id="clock">00:00:00</div>
+<div id="date">-</div>
+</div>
+
+<script>
+let counter=Number(localStorage.getItem("counter")||0);
+
+function updateCounter(){
+ document.getElementById("counter").textContent=counter;
+ localStorage.setItem("counter",counter);
+ calculate(); saveToday(); showHistory();
+}
+function changeCounter(value){counter+=value;updateCounter()}
+function resetCounter(){counter=0;updateCounter()}
+
+function calculate(){
+ const value=Number(document.getElementById("calculationValue").value);
+ const operation=document.getElementById("operation").value;
+ let result;
+ switch(operation){
+  case "multiply":result=counter*value;break;
+  case "divide":result=value===0?"Nicht möglich":counter/value;break;
+  case "add":result=counter+value;break;
+  case "subtract":result=counter-value;break;
+ }
+ if(typeof result==="number"&&Number.isFinite(result))result=Number(result.toFixed(6));
+ document.getElementById("calculation").textContent=result;
+}
+
+function getToday(){
+ const now=new Date();
+ return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+}
+function saveToday(){
+ let history=JSON.parse(localStorage.getItem("history")||"{}");
+ history[getToday()]=counter;
+ localStorage.setItem("history",JSON.stringify(history));
+}
+function showHistory(){
+ const history=JSON.parse(localStorage.getItem("history")||"{}");
+ const table=document.getElementById("history"); table.innerHTML="";
+ Object.keys(history).sort().reverse().forEach(date=>{
+  const row=document.createElement("tr");
+  const dateCell=document.createElement("td"), valueCell=document.createElement("td");
+  dateCell.textContent=new Date(date+"T12:00:00").toLocaleDateString("de-DE");
+  valueCell.textContent=history[date];
+  row.append(dateCell,valueCell); table.appendChild(row);
+ });
+}
+function clearHistory(){
+ if(confirm("Möchtest du die komplette Historie löschen?")){
+  localStorage.removeItem("history");showHistory();
+ }
+}
+function updateClock(){
+ const now=new Date();
+ document.getElementById("clock").textContent=now.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+ document.getElementById("date").textContent=now.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
+}
+updateCounter();showHistory();updateClock();setInterval(updateClock,1000);
+</script>
+</body>
+</html>
